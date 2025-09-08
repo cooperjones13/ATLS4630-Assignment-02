@@ -11,11 +11,17 @@
     <title>Assignment 02</title>
   </head>
   <body>
+    <nav id="navbar">
+      <a id="siteTitle" href="#">ScrySearch</a>
+    </nav>
     <div id="searchContainer">
-      <input type="text" id="cardSearchInput" autocomplete="off" placeholder="Search for card names!">
+      <label id="cardSearchLabel">
+        <input type="text" id="cardSearchInput" autocomplete="off" placeholder="Search for card names!">
+      </label>
     </div>
     <ul id="cardResultsTarget">
       <!-- <span class="loader"></span> -->
+       <span class="message">Begin typing the name of any Magic The Gathering card and the first 175 matches will display. If you are unsure of where to start, try typing "Dragon" to begin</span>
     </ul>
     <script type="module" src="/src/main.js"></script>
   </body>

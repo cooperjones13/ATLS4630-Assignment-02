@@ -3,15 +3,30 @@ body, html{
     width: 100%;
     margin: 0;
     padding: 0;
-    background-color: steelblue;
+    background-color: #111;
     font-family: "Figtree", sans-serif;
     font-optical-sizing: auto;
     font-weight: 300;
     font-style: normal;
+    color: white;
+}
+
+#navbar {
+    background-color: #222;
+    border: none;
+    border-bottom: solid 1px #555;
+    font-size: 2rem;
+    padding: 1rem;
+}
+
+#siteTitle{
+    color: white;
+    text-decoration: none;
 }
 
 #searchContainer{
     height: 20vh;
+    width:100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -25,7 +40,27 @@ body, html{
     border-radius: 1rem;
     border-color: transparent;
     background-color: #DDD;
-    text-align: center;
+    text-align: left;
+    padding-left: 40px;
+}
+
+#cardSearchInput::placeholder{
+    color: #AAA;
+}
+
+#cardSearchLabel{
+    position: relative;
+}
+
+#cardSearchLabel::before{
+     content: "";
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: url("../public/magnifying-glass.svg") center no-repeat;
+  color: grey;
 }
 
 #cardResultsTarget{
@@ -39,27 +74,45 @@ body, html{
     min-height: 70vh;
     justify-content: space-around;
     align-items: center;
-    
+    gap: 1rem 1rem;
+}
+
+#cardResultsTarget .message{
+    min-width: 50%;
+    width: 30rem;
+    max-width: 75%;
+    text-align: center;
+    color: #ddd;
 }
 
 .cardContainer{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     margin: 0;
     padding:0;
     /* display:block; */
-    max-width: 15vw;
-    font-size: 0.5rem;
+    max-width: 100%;
+    min-width: 27.5%;
+    width: 25rem;
+    font-size: 1rem;
+    gap: 1rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    background-color: red;
+    padding:0.5rem;
 }
 
 .cardContainer img{
     display: inline;
     max-width: 146px;
     max-height: 204px;
+    width: 100%;
+    border-radius: 6px;
 }
 
 .cardNameText{
     text-align: center;
+    max-width: 100%;
 }
 
 
@@ -83,7 +136,7 @@ body, html{
       .loader::after{
         inset: 8px;
         transform: rotate3d(90, 90, 0, 180deg );
-        border-color: #FF3D00;
+        border-color: #3a93ff;
       }
 
       @keyframes rotate {

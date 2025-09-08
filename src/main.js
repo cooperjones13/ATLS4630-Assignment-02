@@ -18,6 +18,9 @@ const displayCardResults = (data, searchValue) => {
         if (searchValue !== cardSearchInput.value){
           return;
         }
+
+        cardResultsTarget.innerHTML = '';
+        cardResultsTarget.style = "align-items: normal;";
         for(const card of data){
           const li = document.createElement("li");
           li.className = "cardContainer";
@@ -54,26 +57,39 @@ cardSearchInput.addEventListener('input',
     try{
       const response = await fetch(req);
       const json = await response.json();
+
+      if(!json.data && searchValue){
+        console.log("no results");
+        cardResultsTarget.innerHTML = '<span class="noCardsFoundErrorMessage" class="message">No Cards Found</span>';
+        return;
+      } else if (!json.data && !searchValue){
+        cardResultsTarget.innerHTML = '<span class="message">Begin typing the name of any Magic The Gathering card and the first 175 matches will display. If you are unsure of where to start, try typing "Dragon" to begin</span>';
+        return;
+      }
       console.log(json);
       console.log(json.data);
-      cardResultsTarget.innerHTML = '';
-      cardResultsTarget.style = "align-items: normal;";
       displayCardResults(json.data, searchValue)
-      const displayNext = async (jsonResp, has_more) =>{
-        if (has_more && searchValue === cardSearchInput.value){
-          const reqMore = new Request(jsonResp.next_page, reqData);
-          const responseMore = await fetch(reqMore);
-          const jsonMore = await responseMore.json();
-          console.log(jsonMore);
-          console.log(jsonMore.data);
-          displayCardResults(jsonMore.data, searchValue);
-          displayNext(jsonMore,jsonMore.has_more);
-        }
-      }
-      displayNext(json, json.has_more);
+
+      // USED FOR DISPLAYING ALL RESULTS RECURSIVELY --- caused too much lag, sometimes tried to display 10,000+ results
+
+      // const displayNext = async (jsonResp, has_more) =>{
+      //   if (has_more && searchValue === cardSearchInput.value){
+      //     const reqMore = new Request(jsonResp.next_page, reqData);
+      //     const responseMore = await fetch(reqMore);
+      //     const jsonMore = await responseMore.json();
+      //     console.log(jsonMore);
+      //     console.log(jsonMore.data);
+      //     displayCardResults(jsonMore.data, searchValue);
+      //     displayNext(jsonMore,jsonMore.has_more);
+      //   }
+      // }
+      // displayNext(json, json.has_more);
   
     } catch (e){
-      console.error(e);
+      console.log(e);
+      if(e.status === "404"){
+        console.log("No cards returned")
+      }
     }
   }
 
