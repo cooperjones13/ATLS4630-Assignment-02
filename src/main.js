@@ -3,10 +3,11 @@ import './style.css'
 const baseURL = "https://api.scryfall.com/cards/search"
 
 
-
+//Doing expensive document.getElement outside of any loops
 const cardSearchInput = document.getElementById("cardSearchInput");
 const cardResultsTarget = document.getElementById("cardResultsTarget");
 
+//Scryfall API requires these headers
 const reqData = {
   headers: {
               "User-Agent":"CooperTestAppForATLS4630",
@@ -14,14 +15,16 @@ const reqData = {
             }
 }
 
+
+// Function for displaying the cards in the cardResultsTarget div
 const displayCardResults = (data, searchValue) => {
-        if (searchValue !== cardSearchInput.value){
+        if (searchValue !== cardSearchInput.value){ //Handles any promises that take longer, so only the request that is using the latest value of the input field will be displayed
           return;
         }
-
-        cardResultsTarget.innerHTML = '';
+        
+        cardResultsTarget.innerHTML = ''; //resets html to nothing, getting rid of messages and loaders
         cardResultsTarget.style = "align-items: normal;";
-        for(const card of data){
+        for(const card of data){ 
           const li = document.createElement("li");
           li.className = "cardContainer";
 
@@ -32,7 +35,7 @@ const displayCardResults = (data, searchValue) => {
           cardNameText.className = "cardNameText"
         // console.log(card);
         if(!card.image_uris){
-          img.src = card.card_faces[0].image_uris.small;
+          img.src = card.card_faces[0].image_uris.small; //Some cards are double sided and that is reflected differently in the json response
         } else {
           img.src = card.image_uris.small;  
         }
@@ -45,29 +48,34 @@ const displayCardResults = (data, searchValue) => {
        }
       }
 
+
+// Event Listener focused on the input field, waiting for user to change the field before requesting
+// Could be expensive as we are not waiting until the user has stopped typing, we are just firing off requests for each and every keystroke       
 cardSearchInput.addEventListener('input', 
   async () => {
-    cardResultsTarget.innerHTML = '<span class="loader"></span>';
+    cardResultsTarget.innerHTML = '<span class="loader"></span>'; //Sets the html to be our spinning loader
     cardResultsTarget.style = "align-items: center;";
-    const searchValue = cardSearchInput.value;
+
+    const searchValue = cardSearchInput.value; //saving the input fields value to a const, will be useful to check against
     const params = `?q="${searchValue}"`;
 
     const req = new Request(baseURL + params, reqData);
 
     try{
+      //Makes Request
       const response = await fetch(req);
       const json = await response.json();
 
-      if(!json.data && searchValue){
-        console.log("no results");
+      if(!json.data && searchValue){ //If there is no data and the search value exists, then display no results
+        // console.log("no results");
         cardResultsTarget.innerHTML = '<span class="noCardsFoundErrorMessage" class="message">No Cards Found</span>';
         return;
-      } else if (!json.data && !searchValue){
+      } else if (!json.data && !searchValue){ //If there is no data and the search value does not exist, then display default message
         cardResultsTarget.innerHTML = '<span class="message">Begin typing the name of any Magic The Gathering card and the first 175 matches will display. If you are unsure of where to start, try typing "Dragon" to begin</span>';
         return;
       }
-      console.log(json);
-      console.log(json.data);
+      // console.log(json);
+      // console.log(json.data);
       displayCardResults(json.data, searchValue)
 
       // USED FOR DISPLAYING ALL RESULTS RECURSIVELY --- caused too much lag, sometimes tried to display 10,000+ results
@@ -87,9 +95,6 @@ cardSearchInput.addEventListener('input',
   
     } catch (e){
       console.log(e);
-      if(e.status === "404"){
-        console.log("No cards returned")
-      }
     }
   }
 
