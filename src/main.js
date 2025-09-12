@@ -15,6 +15,17 @@ const reqData = {
             }
 }
 
+// Debounce function from https://www.geeksforgeeks.org/javascript/debouncing-in-javascript/
+function debounce(func, delay) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
 
 // Function for displaying the cards in the cardResultsTarget div
 const displayCardResults = (data, searchValue) => {
@@ -22,7 +33,6 @@ const displayCardResults = (data, searchValue) => {
           return;
         }
         
-        cardResultsTarget.innerHTML = ''; //resets html to nothing, getting rid of messages and loaders
         cardResultsTarget.style = "align-items: normal;";
         for(const card of data){ 
           const li = document.createElement("li");
@@ -52,50 +62,57 @@ const displayCardResults = (data, searchValue) => {
 // Event Listener focused on the input field, waiting for user to change the field before requesting
 // Could be expensive as we are not waiting until the user has stopped typing, we are just firing off requests for each and every keystroke       
 cardSearchInput.addEventListener('input', 
-  async () => {
-    cardResultsTarget.innerHTML = '<span class="loader"></span>'; //Sets the html to be our spinning loader
-    cardResultsTarget.style = "align-items: center;";
+  debounce(
+    async () => {
 
-    const searchValue = cardSearchInput.value; //saving the input fields value to a const, will be useful to check against
-    const params = `?q="${searchValue}"`;
+      const searchValue = cardSearchInput.value; //saving the input fields value to a const, will be useful to check against
+      cardResultsTarget.style = "align-items: center;";
+      if (!searchValue){ //the searchbar has nothing in it, then display default message and return
+          cardResultsTarget.innerHTML = '<span class="message">Begin typing the name of any Magic The Gathering card and the first 175 matches will display. If you are unsure of where to start, try typing "Dragon" to begin</span>';
+          return;
+        }
+      cardResultsTarget.innerHTML = '<span class="loader"></span>'; //Sets the html to be our spinning loader
+      const params = `?q="${searchValue}"`;
 
-    const req = new Request(baseURL + params, reqData);
+      const req = new Request(baseURL + params, reqData);
 
-    try{
-      //Makes Request
-      const response = await fetch(req);
-      const json = await response.json();
+      try{
+        //Makes Request
+        const response = await fetch(req);
+        const json = await response.json();
 
-      if(!json.data && searchValue){ //If there is no data and the search value exists, then display no results
-        // console.log("no results");
-        cardResultsTarget.innerHTML = '<span class="noCardsFoundErrorMessage" class="message">No Cards Found</span>';
-        return;
-      } else if (!json.data && !searchValue){ //If there is no data and the search value does not exist, then display default message
-        cardResultsTarget.innerHTML = '<span class="message">Begin typing the name of any Magic The Gathering card and the first 175 matches will display. If you are unsure of where to start, try typing "Dragon" to begin</span>';
-        return;
-      }
-      // console.log(json);
-      // console.log(json.data);
-      displayCardResults(json.data, searchValue)
+        if(!json.data && searchValue){ //If there is no data and the search value exists, then display no results
+          // console.log("no results");
+          cardResultsTarget.innerHTML = '<span class="noCardsFoundErrorMessage" class="message">No Cards Found</span>';
+          return;
+        }
+        
+        console.log(json);
+        // console.log(json.data);
+        cardResultsTarget.innerHTML = ''; //resets html to nothing, getting rid of messages and loaders
+        displayCardResults(json.data, searchValue)
 
-      // USED FOR DISPLAYING ALL RESULTS RECURSIVELY --- caused too much lag, sometimes tried to display 10,000+ results
+        // USED FOR DISPLAYING ALL RESULTS RECURSIVELY --- caused too much lag, sometimes tried to display 10,000+ results
 
-      // const displayNext = async (jsonResp, has_more) =>{
-      //   if (has_more && searchValue === cardSearchInput.value){
-      //     const reqMore = new Request(jsonResp.next_page, reqData);
-      //     const responseMore = await fetch(reqMore);
-      //     const jsonMore = await responseMore.json();
-      //     console.log(jsonMore);
-      //     console.log(jsonMore.data);
-      //     displayCardResults(jsonMore.data, searchValue);
-      //     displayNext(jsonMore,jsonMore.has_more);
-      //   }
-      // }
-      // displayNext(json, json.has_more);
+        const displayNext = async (jsonResp, has_more) =>{
+          if(!has_more || !searchValue){
+            return;
+          }
+          if (has_more && searchValue === cardSearchInput.value){
+            const reqMore = new Request(jsonResp.next_page, reqData);
+            const responseMore = await fetch(reqMore);
+            const jsonMore = await responseMore.json();
+            console.log(jsonMore);
+            console.log(jsonMore.data);
+            displayCardResults(jsonMore.data, searchValue);
+            displayNext(jsonMore,jsonMore.has_more);
+          }
+        }
+        displayNext(json, json.has_more);
   
-    } catch (e){
-      console.log(e);
+      } catch (e){
+        console.log(e);
     }
-  }
+  }, 450)
 
 )
